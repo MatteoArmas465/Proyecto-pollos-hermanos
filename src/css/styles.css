@@ -364,28 +364,32 @@ body {
     margin-bottom: 0.3rem;
 }
 
-
 /* Dispositivos móviles y tablets en vertical (hasta 768px) */
 @media (max-width: 768px) {
     .navbar {
         flex-direction: column;
-        gap: 1rem;
+        gap: 0.5rem;
         text-align: center;
+        padding: 10px;
     }
 
     .nav-links {
-        flex-direction: column;
+        flex-direction: row;     /* Pone los enlaces uno al lado del otro */
+        flex-wrap: wrap;         /* Si no caben en una línea, saltan ordenadamente */
+        justify-content: center;
         gap: 0.5rem;
         width: 100%;
+        padding: 0;
     }
 
     .nav-links li {
-        width: 100%;
+        width: auto;             /* Deja que cada enlace ocupe solo su propio tamaño */
     }
 
     .nav-links a {
-        display: block;
-        padding: 0.6rem;
+        display: inline-block;
+        padding: 0.4rem 0.8rem;  /* Reduce el relleno vertical para hacerlo compacto */
+        font-size: 0.9rem;
     }
 
     .hero-content h2 {
