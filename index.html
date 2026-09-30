@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Los Pollos Hermanos - El Sabor de la Calidad</title>
+    <link rel="stylesheet" href="/src/css/styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Encabezado accesible con navegación pegajosa -->
+    <header class="navbar">
+        <div class="logo-container">
+            <h1 class="brand-title">Los Pollos Hermanos</h1>
+        </div>
+        <nav>
+            <ul class="nav-links">
+                <li><a href="#inicio">Inicio</a></li>
+                <li><a href="#menu">Menú</a></li>
+                <li><a href="#nosotros">Nosotros</a></li>
+                <li><a href="#contacto">Contacto / Pedidos</a></li>
+                <li><a href="src/pages/admin.html" class="btn-admin" style="background-color: #E50914; color: white; padding: 0.4rem 0.8rem; border-radius: 4px; text-decoration: none; font-weight: bold;">Panel Admin</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <!-- Sección de Inicio (Hero) -->
+        <section id="inicio" class="hero-section">
+            <div class="hero-content">
+                <h2>El mejor pollo frito de Nuevo México</h2>
+                <p>Cocinamos con pasión, tradición y el secreto de la mejor receta familiar de Gustavo Fring.</p>
+                <a href="#menu" class="btn-primary">Ver Menú</a>
+            </div>
+        </section>
+
+        <!-- Sección de Menú Dinámico con Imágenes -->
+        <section id="menu" class="menu-section">
+            <h2 class="section-title">Nuestras Especialidades</h2>
+            
+            <div class="cards-grid" id="menuContainer">
+                <!-- Tarjeta 1 -->
+                <article class="card">
+                    <img src="https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?q=80&w=600&auto=format&fit=crop" alt="Combo Familiar Gustavo" class="card-img">
+                    <div class="card-body">
+                        <h3>Combo Familiar Gustavo</h3>
+                        <p>12 piezas de pollo crujiente, papas fritas familiares, ensalada coleslaw y 4 bebidas.</p>
+                        <span class="price">S/. 24.90</span>
+                        <button class="btn-card" data-nombre="Combo Familiar Gustavo" data-precio="24.90">Agregar al carrito</button>
+                    </div>
+                </article>
+
+                <!-- Tarjeta 2 -->
+                <article class="card">
+                    <img src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?q=80&w=600&auto=format&fit=crop" alt="Pollos Burger Suprema" class="card-img">
+                    <div class="card-body">
+                        <h3>Pollos Burger Suprema</h3>
+                        <p>Filete de pechuga empanizada, queso cheddar, lechuga fresca y nuestra salsa secreta.</p>
+                        <span class="price">S/. 9.90</span>
+                        <button class="btn-card" data-nombre="Pollos Burger Suprema" data-precio="9.90">Agregar al carrito</button>
+                    </div>
+                </article>
+
+                <!-- Tarjeta 3 -->
+                <article class="card">
+                    <img src="https://images.unsplash.com/photo-1573080496219-bb080dd4f877?q=80&w=600&auto=format&fit=crop" alt="Papas Estilo Hermanos" class="card-img">
+                    <div class="card-body">
+                        <h3>Papas Estilo Hermanos</h3>
+                        <p>Papas sazonadas con pimentón dulce y especias de la casa, súper crujientes.</p>
+                        <span class="price">S/. 4.50</span>
+                        <button class="btn-card" data-nombre="Papas Estilo Hermanos" data-precio="4.50">Agregar al carrito</button>
+                    </div>
+                </article>
+            </div>
+        </section>
+
+        <!-- Sección Nosotros -->
+        <section id="nosotros" class="about-section">
+            <div class="about-container">
+                <h2>Nuestra Historia</h2>
+                <p>
+                    Fundado por Gustavo Fring y su socio, Los Pollos Hermanos se enorgullece de servir el pollo más fino y delicioso. 
+                    Nuestra promesa es simple: ingredientes frescos, servicio de primera clase y una sonrisa en cada visita.
+                </p>
+                <blockquote class="quote">
+                    "Los Pollos Hermanos, donde algo delicioso siempre se está cocinando."
+                </blockquote>
+            </div>
+        </section>
+
+        <!-- Sección de Contacto / Registro de Pedidos (CRUD 3) -->
+        <section id="contacto" class="contact-section">
+            <h2 class="section-title">Haz tu Pedido o Contáctanos</h2>
+            <form id="contactForm" class="contact-form" novalidate>
+                <div class="form-group">
+                    <label for="nombre">Nombre Completo:</label>
+                    <input type="text" id="nombre" name="nombre" placeholder="Ej. Walter White" required>
+                    <span class="error-message" id="errorNombre"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Correo Electrónico:</label>
+                    <input type="email" id="email" name="email" placeholder="ejemplo@correo.com" required>
+                    <span class="error-message" id="errorEmail"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="pedido">Detalle de tu Pedido / Mensaje:</label>
+                    <textarea id="pedido" name="pedido" rows="4" placeholder="Escribe tu pedido o consulta..." required></textarea>
+                    <span class="error-message" id="errorPedido"></span>
+                </div>
+
+                <button type="submit" class="btn-submit">Enviar Pedido a Firebase</button>
+                <div id="formSuccess" class="success-message"></div>
+            </form>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <p>&copy; 2026 Los Pollos Hermanos - Todos los derechos reservados.</p>
+        <p>Albuquerque, Nuevo México</p>
+    </footer>
+
+    <!-- Importante: type="module" permite usar import/export en JS con Firebase -->
+    <script type="module" src="/src/js/main.js"></script>
+</body>
+</html>
