@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Los Pollos Hermanos: el mejor pollo frito de Nuevo México. Mira nuestro menú y haz tu pedido en línea.">
     <title>Los Pollos Hermanos - El Sabor de la Calidad</title>
     <link rel="stylesheet" href="src/css/styles.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -10,24 +11,39 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <!-- Encabezado accesible con navegación pegajosa -->
+
+    <!-- ==================== ENCABEZADO / NAVBAR ==================== -->
     <header class="navbar">
         <div class="logo-container">
             <h1 class="brand-title">Los Pollos Hermanos</h1>
         </div>
+
         <nav>
             <ul class="nav-links">
                 <li><a href="#inicio">Inicio</a></li>
                 <li><a href="#menu">Menú</a></li>
                 <li><a href="#nosotros">Nosotros</a></li>
                 <li><a href="#contacto">Contacto / Pedidos</a></li>
-                <li><a href="src/pages/admin.html" class="btn-admin" style="background-color: #E50914; color: white; padding: 0.4rem 0.8rem; border-radius: 4px; text-decoration: none; font-weight: bold;">Panel Admin</a></li>
+                <li id="adminItem" style="display:none;"><a href="src/pages/admin.html" class="btn-admin" id="adminLink">Panel Admin</a></li>
             </ul>
         </nav>
+
+        <div class="cart-icon-container" id="openCartBtn" role="button" aria-label="Abrir carrito">
+            🛒 <span class="cart-badge" id="cartBadge">0</span>
+        </div>
+
+        <div class="auth-area">
+            <button type="button" class="btn-login" id="openLoginBtn">Iniciar sesión</button>
+            <div class="user-menu" id="userMenu" style="display:none;">
+                <span class="user-name" id="userName"></span>
+                <button type="button" class="btn-logout" id="logoutBtn">Salir</button>
+            </div>
+        </div>
     </header>
 
     <main>
-        <!-- Sección de Inicio (Hero) -->
+
+        <!-- ==================== INICIO (HERO) ==================== -->
         <section id="inicio" class="hero-section">
             <div class="hero-content">
                 <h2>El mejor pollo frito de Nuevo México</h2>
@@ -36,13 +52,18 @@
             </div>
         </section>
 
-        <!-- Sección de Menú Dinámico con Imágenes -->
+        <!-- ==================== MENÚ ==================== -->
         <section id="menu" class="menu-section">
             <h2 class="section-title">Nuestras Especialidades</h2>
-            
+            <div class="category-filters" id="categoryFilters"></div>
+
             <div class="cards-grid" id="menuContainer">
-                <!-- Tarjeta 1 -->
-                <article class="card">
+                <p class="menu-loading">Cargando el menú…</p>
+            </div>
+
+            <!-- Menú de respaldo: solo se usa si Firebase no responde -->
+            <template id="menuFallback">
+                <article class="card" data-categoria="Menú">
                     <img src="https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?q=80&w=600&auto=format&fit=crop" alt="Combo Familiar Gustavo" class="card-img">
                     <div class="card-body">
                         <h3>Combo Familiar Gustavo</h3>
@@ -52,8 +73,7 @@
                     </div>
                 </article>
 
-                <!-- Tarjeta 2 -->
-                <article class="card">
+                <article class="card" data-categoria="Menú">
                     <img src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?q=80&w=600&auto=format&fit=crop" alt="Pollos Burger Suprema" class="card-img">
                     <div class="card-body">
                         <h3>Pollos Burger Suprema</h3>
@@ -63,8 +83,7 @@
                     </div>
                 </article>
 
-                <!-- Tarjeta 3 -->
-                <article class="card">
+                <article class="card" data-categoria="Menú">
                     <img src="https://images.unsplash.com/photo-1573080496219-bb080dd4f877?q=80&w=600&auto=format&fit=crop" alt="Papas Estilo Hermanos" class="card-img">
                     <div class="card-body">
                         <h3>Papas Estilo Hermanos</h3>
@@ -73,15 +92,15 @@
                         <button class="btn-card" data-nombre="Papas Estilo Hermanos" data-precio="4.50">Agregar al carrito</button>
                     </div>
                 </article>
-            </div>
+            </template>
         </section>
 
-        <!-- Sección Nosotros -->
+        <!-- ==================== NOSOTROS ==================== -->
         <section id="nosotros" class="about-section">
             <div class="about-container">
                 <h2>Nuestra Historia</h2>
                 <p>
-                    Fundado por Gustavo Fring y su socio, Los Pollos Hermanos se enorgullece de servir el pollo más fino y delicioso. 
+                    Fundado por Gustavo Fring y su socio, Los Pollos Hermanos se enorgullece de servir el pollo más fino y delicioso.
                     Nuestra promesa es simple: ingredientes frescos, servicio de primera clase y una sonrisa en cada visita.
                 </p>
                 <blockquote class="quote">
@@ -90,19 +109,20 @@
             </div>
         </section>
 
-        <!-- Sección de Contacto / Registro de Pedidos (CRUD 3) -->
+        <!-- ==================== CONTACTO / PEDIDOS ==================== -->
         <section id="contacto" class="contact-section">
             <h2 class="section-title">Haz tu Pedido o Contáctanos</h2>
+
             <form id="contactForm" class="contact-form" novalidate>
                 <div class="form-group">
                     <label for="nombre">Nombre Completo:</label>
-                    <input type="text" id="nombre" name="nombre" placeholder="Ej. Walter White" required>
+                    <input type="text" id="nombre" name="nombre" placeholder="Ej. Walter White" autocomplete="name" required>
                     <span class="error-message" id="errorNombre"></span>
                 </div>
 
                 <div class="form-group">
                     <label for="email">Correo Electrónico:</label>
-                    <input type="email" id="email" name="email" placeholder="ejemplo@correo.com" required>
+                    <input type="email" id="email" name="email" placeholder="ejemplo@correo.com" autocomplete="email" required>
                     <span class="error-message" id="errorEmail"></span>
                 </div>
 
@@ -112,18 +132,82 @@
                     <span class="error-message" id="errorPedido"></span>
                 </div>
 
-                <button type="submit" class="btn-submit">Enviar Pedido a Firebase</button>
+                <button type="submit" class="btn-submit">Enviar pedido</button>
                 <div id="formSuccess" class="success-message"></div>
             </form>
         </section>
+
     </main>
 
+    <!-- ==================== PIE DE PÁGINA ==================== -->
     <footer class="footer">
         <p>&copy; 2026 Los Pollos Hermanos - Todos los derechos reservados.</p>
         <p>Albuquerque, Nuevo México</p>
     </footer>
 
-    <!-- Importante: type="module" permite usar import/export en JS con Firebase -->
+    <!-- ==================== PANEL DEL CARRITO ==================== -->
+    <div class="cart-overlay" id="cartOverlay"></div>
+    <aside class="cart-drawer" id="cartDrawer" aria-label="Carrito de compras">
+        <div class="cart-drawer-header">
+            <h2>🛒 Tu carrito</h2>
+            <button type="button" class="cart-close" id="closeCartBtn" aria-label="Cerrar carrito">✕</button>
+        </div>
+
+        <div class="cart-drawer-body" id="cartItemsContainer"></div>
+
+        <div class="cart-drawer-footer">
+            <div class="cart-total-row">
+                <span>Total</span>
+                <strong id="cartTotal">S/. 0.00</strong>
+            </div>
+            <button type="button" class="btn-submit" id="btnFinalizar">Finalizar pedido</button>
+            <button type="button" class="btn-clear-cart" id="btnVaciar">Vaciar carrito</button>
+        </div>
+    </aside>
+
+    <!-- ==================== VENTANA DE INICIO DE SESIÓN ==================== -->
+    <div class="modal-overlay" id="loginModal">
+        <div class="modal-box" role="dialog" aria-labelledby="loginTitle">
+            <button type="button" class="modal-close" id="closeLoginBtn" aria-label="Cerrar">✕</button>
+            <h2 class="modal-title" id="loginTitle">Regístrate o Inicia Sesión</h2>
+
+            <button type="button" class="btn-google" id="btnGoogle">
+                <svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true">
+                    <path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.5l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.6 17.7 9.5 24 9.5z"/>
+                    <path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17.5z"/>
+                    <path fill="#FBBC05" d="M10.5 28.7c-.5-1.5-.8-3-.8-4.7s.3-3.2.8-4.7l-7.9-6.1C.9 16.5 0 20.1 0 24s.9 7.5 2.6 10.8l7.9-6.1z"/>
+                    <path fill="#34A853" d="M24 48c6.3 0 11.6-2.1 15.5-5.7l-7.5-5.8c-2.1 1.4-4.8 2.3-8 2.3-6.3 0-11.6-4.1-13.5-9.8l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/>
+                </svg>
+                Continuar con Google
+            </button>
+
+            <p class="modal-sep"><span>o con tu correo</span></p>
+
+            <div class="modal-tabs">
+                <button type="button" class="modal-tab active" data-modo="login">Iniciar sesión</button>
+                <button type="button" class="modal-tab" data-modo="registro">Crear cuenta</button>
+            </div>
+
+            <form id="authForm" novalidate>
+                <div class="form-group" id="grupoNombreAuth" style="display:none;">
+                    <label for="authNombre">Nombre:</label>
+                    <input type="text" id="authNombre" placeholder="Tu nombre" autocomplete="name">
+                </div>
+                <div class="form-group">
+                    <label for="authEmail">Correo electrónico:</label>
+                    <input type="email" id="authEmail" placeholder="ejemplo@correo.com" autocomplete="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="authPassword">Contraseña:</label>
+                    <input type="password" id="authPassword" placeholder="Mínimo 6 caracteres" autocomplete="current-password" required>
+                </div>
+                <span class="error-message" id="authError"></span>
+                <button type="submit" class="btn-submit" id="authSubmit">Iniciar sesión</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- type="module" permite usar import/export en JS con Firebase -->
     <script type="module" src="src/js/main.js"></script>
 </body>
 </html>

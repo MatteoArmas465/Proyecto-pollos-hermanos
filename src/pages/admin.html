@@ -36,7 +36,8 @@
         </nav>
     </header>
 
-    <main class="admin-container">
+    <p id="adminCheck" style="text-align:center; margin:3rem 1rem; font-weight:600;">Verificando acceso…</p>
+    <main class="admin-container" id="adminMain" style="display:none;">
         <!-- Navegación por pestañas para los 3 CRUDs -->
         <div class="tabs">
             <button class="tab-btn active" onclick="switchTab('crud-productos')">1. CRUD Productos</button>
@@ -58,6 +59,12 @@
                     <input type="number" step="0.01" id="pPrecio" required placeholder="24.90">
                 </div>
                 <div class="form-group">
+                    <label for="pCategoria">Categoría:</label>
+                    <select id="pCategoria">
+                        <option value="">Sin categoría</option>
+                    </select>
+                </div>
+                <div class="form-group">
                     <label for="pImagen">URL Imagen (opcional):</label>
                     <input type="url" id="pImagen" placeholder="https://ejemplo.com/imagen.jpg">
                 </div>
@@ -73,6 +80,7 @@
                     <tr>
                         <th>Nombre</th>
                         <th>Precio</th>
+                        <th>Categoría</th>
                         <th>Descripción</th>
                         <th>Acciones</th>
                     </tr>
@@ -84,6 +92,7 @@
         <!-- ==================== CRUD 2: CATEGORÍAS ==================== -->
         <section id="crud-categorias" class="crud-panel">
             <h2>Gestión de Categorías</h2>
+            <button type="button" id="btnSeed" class="btn-action btn-edit" style="margin-bottom: 1rem; padding: 0.6rem 1rem;">⚡ Cargar menú de ejemplo</button>
             <form id="formCatAdmin" class="contact-form" style="max-width: 100%;">
                 <input type="hidden" id="catId">
                 <div class="form-group">
