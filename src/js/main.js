@@ -27,6 +27,9 @@ const esc = (texto) => String(texto ?? '').replace(/[&<>"']/g, (c) => ({
 
 const dinero = (n) => `S/. ${Number(n).toFixed(2)}`;
 
+// Milisegundos transcurridos desde "inicio" (para las mediciones de rendimiento)
+const msDesde = (inicio) => Math.round(performance.now() - inicio);
+
 // Quita tildes y mayúsculas para comparar textos
 const norm = (t) => String(t ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 
@@ -39,6 +42,25 @@ const emojiDe = (categoria) => {
     if (c.includes('acompa') || c.includes('papas')) return '🍟';
     if (c.includes('combo') || c.includes('pollo') || c.includes('promo')) return '🍗';
     return '🍽️';
+};
+
+// Copia local del menú: permite mostrarlo al instante en la siguiente visita
+const CLAVE_CACHE_MENU = 'pollos_menu_cache_v1';
+
+const leerCacheMenu = () => {
+    try {
+        return JSON.parse(localStorage.getItem(CLAVE_CACHE_MENU));
+    } catch {
+        return null;
+    }
+};
+
+const guardarCacheMenu = (datos) => {
+    try {
+        localStorage.setItem(CLAVE_CACHE_MENU, JSON.stringify(datos));
+    } catch {
+        // Si el navegador no permite guardar, el menú sigue funcionando sin caché
+    }
 };
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -202,7 +224,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     /* ==========================================================================
-       3. MENÚ DESDE FIREBASE + FILTROS POR CATEGORÍA
+       3. MENÚ DESDE FIREBASE + FILTROS + CACHÉ LOCAL
        ========================================================================== */
     const menuContainer = document.getElementById('menuContainer');
     const filtersContainer = document.getElementById('categoryFilters');
@@ -229,61 +251,90 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    // Menú de respaldo del HTML (solo se usa si no hay Firebase ni caché)
     const mostrarMenuRespaldo = () => {
         const plantilla = document.getElementById('menuFallback');
         if (plantilla) menuContainer.replaceChildren(plantilla.content.cloneNode(true));
     };
 
+    // Dibuja las tarjetas y los filtros a partir de los datos
+    const pintarMenu = (productos, nombresCategorias) => {
+        // Productos sin categoría van a "Otros"
+        const lista = productos.map(p => ({ ...p, categoria: p.categoria || 'Otros' }));
+
+        // Solo mostramos categorías que tengan productos, en el orden del admin
+        const usadas = new Set(lista.map(p => p.categoria));
+        const orden = nombresCategorias.filter(n => usadas.has(n));
+        [...usadas].forEach(n => { if (!orden.includes(n)) orden.push(n); });
+
+        lista.sort((a, b) => orden.indexOf(a.categoria) - orden.indexOf(b.categoria));
+
+        menuContainer.innerHTML = '';
+        lista.forEach((prod) => {
+            const media = prod.imagen
+                ? `<img src="${esc(prod.imagen)}" alt="${esc(prod.nombre)}" class="card-img" loading="lazy">`
+                : `<div class="card-img-placeholder card-emoji" aria-hidden="true">${emojiDe(prod.categoria)}</div>`;
+
+            menuContainer.insertAdjacentHTML('beforeend', `
+                <article class="card" data-categoria="${esc(prod.categoria)}">
+                    ${media}
+                    <div class="card-body">
+                        <h3>${esc(prod.nombre)}</h3>
+                        <p>${esc(prod.descripcion || 'Sin descripción disponible.')}</p>
+                        <span class="price">S/. ${(parseFloat(prod.precio) || 0).toFixed(2)}</span>
+                        <button class="btn-card" data-id="${esc(prod.id)}" data-nombre="${esc(prod.nombre)}" data-precio="${prod.precio}">Agregar al carrito</button>
+                    </div>
+                </article>
+            `);
+        });
+
+        renderizarFiltros(orden);
+        activarBotonesTarjetas();
+    };
+
+    // Estrategia: mostrar primero la copia local (instantáneo) y luego
+    // consultar Firebase en segundo plano; si hay cambios, se actualiza.
     const cargarProductosMenu = async () => {
+        const inicioTotal = performance.now();
+        const cache = leerCacheMenu();
+        let pintadoDesdeCache = false;
+
+        if (cache && Array.isArray(cache.productos) && cache.productos.length > 0) {
+            pintarMenu(cache.productos, cache.categorias || []);
+            pintadoDesdeCache = true;
+            console.info(`[Rendimiento] Menú mostrado desde caché local en ${msDesde(inicioTotal)} ms (${cache.productos.length} productos)`);
+        }
+
         try {
-            // Pedimos productos y categorías al mismo tiempo (más rápido)
+            // Pedimos productos y categorías al mismo tiempo
+            const inicioRed = performance.now();
             const [productos, categorias] = await Promise.all([
                 obtenerProductos(),
                 obtenerCategorias().catch(() => [])
             ]);
+            console.info(`[Rendimiento] Firestore: ${productos.length} productos + ${categorias.length} categorías leídos en ${msDesde(inicioRed)} ms (consultas en paralelo)`);
 
-            if (!productos || productos.length === 0) {
+            if (productos.length === 0) {
+                localStorage.removeItem(CLAVE_CACHE_MENU);
                 mostrarMenuRespaldo();
+                activarBotonesTarjetas();
                 return;
             }
 
-            const nombresCategorias = categorias.map(c => c.nombre);
+            const nuevo = { productos, categorias: categorias.map(c => c.nombre) };
 
-            // Productos sin categoría van a "Otros"
-            const lista = productos.map(p => ({ ...p, categoria: p.categoria || 'Otros' }));
-
-            // Solo mostramos categorías que tengan productos, en el orden del admin
-            const usadas = new Set(lista.map(p => p.categoria));
-            const orden = nombresCategorias.filter(n => usadas.has(n));
-            [...usadas].forEach(n => { if (!orden.includes(n)) orden.push(n); });
-
-            lista.sort((a, b) => orden.indexOf(a.categoria) - orden.indexOf(b.categoria));
-
-            menuContainer.innerHTML = '';
-            lista.forEach((prod) => {
-                const media = prod.imagen
-                    ? `<img src="${esc(prod.imagen)}" alt="${esc(prod.nombre)}" class="card-img" loading="lazy">`
-                    : `<div class="card-img-placeholder card-emoji" aria-hidden="true">${emojiDe(prod.categoria)}</div>`;
-
-                menuContainer.insertAdjacentHTML('beforeend', `
-                    <article class="card" data-categoria="${esc(prod.categoria)}">
-                        ${media}
-                        <div class="card-body">
-                            <h3>${esc(prod.nombre)}</h3>
-                            <p>${esc(prod.descripcion || 'Sin descripción disponible.')}</p>
-                            <span class="price">S/. ${(parseFloat(prod.precio) || 0).toFixed(2)}</span>
-                            <button class="btn-card" data-id="${esc(prod.id)}" data-nombre="${esc(prod.nombre)}" data-precio="${prod.precio}">Agregar al carrito</button>
-                        </div>
-                    </article>
-                `);
-            });
-
-            renderizarFiltros(orden);
+            // Solo volvemos a dibujar si algo cambió respecto a la copia local
+            if (!pintadoDesdeCache || JSON.stringify(cache) !== JSON.stringify(nuevo)) {
+                pintarMenu(nuevo.productos, nuevo.categorias);
+                guardarCacheMenu(nuevo);
+                console.info(`[Rendimiento] Menú actualizado con datos de Firebase (total ${msDesde(inicioTotal)} ms)`);
+            }
         } catch (error) {
-            console.warn('Usando el menú de respaldo (revisa las reglas de Firestore).');
-            mostrarMenuRespaldo();
-        } finally {
-            activarBotonesTarjetas();
+            console.warn('No se pudo leer Firebase (revisa las reglas de Firestore).', error);
+            if (!pintadoDesdeCache) {
+                mostrarMenuRespaldo();
+                activarBotonesTarjetas();
+            }
         }
     };
 
@@ -491,7 +542,10 @@ document.addEventListener('DOMContentLoaded', () => {
             };
 
             try {
+                const inicio = performance.now();
                 await crearPedido(nuevoPedido);
+                console.info(`[Rendimiento] Pedido guardado en Firestore en ${msDesde(inicio)} ms`);
+
                 formSuccess.textContent = `¡Gracias por tu pedido, ${nuevoPedido.cliente}! Ya lo recibimos.`;
                 formSuccess.style.display = 'block';
                 contactForm.reset();
